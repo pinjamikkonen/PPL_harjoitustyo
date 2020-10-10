@@ -93,12 +93,12 @@ t_DIV = r'\/'
 t_DECIMAL_LITERAL = r'-?[0-9]+\.[0-9]'
 t_INT_LITERAL = r'-?[0-9]+'
 
-# Comment - NOTE: Comments can span multiple lines
+# Comments get ignored
 def t_COMMENT(t):
     r'\.\.\.(.|\n)*?\.\.\.'
     pass
 
-# Longer tokens
+# Info string
 def t_INFO_STRING(t):
     r'!.*!'
     t.type = reserved.get(t.value, 'INFO_STRING')
@@ -112,7 +112,7 @@ def t_newline(t):
 #Ignored characters
 t_ignore = ' \t\r'
 
-# More longer tokens
+# Longer tokens
 def t_COORDINATE_IDENT(t):
     r'([A-Z]{1,2}[0-9]{1,3})'
     t.type = reserved.get(t.value, 'COORDINATE_IDENT')
