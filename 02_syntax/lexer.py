@@ -1,6 +1,6 @@
 # Pinja Mikkonen 99219
 # Priciples of Programming Languages
-# Project Work - Phase 1
+# Project Work - Phase 2
 
 import sys
 import ply.lex as lex
