@@ -4,6 +4,7 @@
 
 import sys
 import ply.lex as lex
+import re
 
 #Reserved words
 reserved = {
@@ -90,9 +91,6 @@ t_MINUS = r'\-'
 t_MULT = r'\*'
 t_DIV = r'\/'
 
-t_DECIMAL_LITERAL = r'-?[0-9]+\.[0-9]'
-t_INT_LITERAL = r'-?[0-9]+'
-
 # Comments get ignored
 def t_COMMENT(t):
     r'\.\.\.(.|\n)*?\.\.\.'
@@ -102,6 +100,7 @@ def t_COMMENT(t):
 def t_INFO_STRING(t):
     r'!.*!'
     t.type = reserved.get(t.value, 'INFO_STRING')
+    #return remove_comment(t)
     return t
 
 # New line
@@ -115,22 +114,26 @@ t_ignore = ' \t\r'
 # Longer tokens
 def t_COORDINATE_IDENT(t):
     r'([A-Z]{1,2}[0-9]{1,3})'
-    t.type = reserved.get(t.value, 'COORDINATE_IDENT')
     return t
 
-def t_RANGE_ID(t):
-    r'(\_[a-zA-Z0-9]+)'
-    t.type = reserved.get(t.value, 'RANGE_IDENT')
+def t_DECIMAL_LITERAL(t):
+    r'-?[0-9]+\.[0-9]'
     return t
 
-def t_FUNC_ID(t):
+def t_INT_LITERAL(t):
+    r'-?[0-9]+'
+    return t
+
+def t_RANGE_IDENT(t):
+    r'(\_[_a-zA-Z0-9]+)'
+    return t
+
+def t_FUNC_IDENT(t):
     r'([A-Z][a-z0-9_]+)'
-    t.type = reserved.get(t.value, 'FUNC_IDENT')
     return t
 
-def t_SHEET_ID(t):
+def t_SHEET_IDENT(t):
     r'([A-Z]+)'
-    t.type = reserved.get(t.value, 'SHEET_IDENT')
     return t
 
 def t_IDENT(t):
@@ -145,6 +148,11 @@ def t_error(t):
 
 # Build lexer
 lexer = lex.lex()
+
+#def remove_comment(t):
+#    c = re.search("...(.|\n)*?...", t.value)
+#    t = t.value[0].replace(c, "")
+#    return t
 
 # Main
 if __name__ == '__main__':
