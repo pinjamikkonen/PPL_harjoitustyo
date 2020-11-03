@@ -9,11 +9,12 @@ import lexer
 tokens = lexer.tokens
 
 def p_program(p):
-    'program : function_or_variable_definitions statement_list'
+    '''program :    statement_list
+                    | function_or_variable_definitions statement_list'''
     print('program')
 
 def p_function_or_variable_definitions(p):
-    '''function_or_variable_definitions :
+    '''function_or_variable_definitions :   empty
                                             | function_or_variable_definition
                                             | function_or_variable_definitions function_or_variable_definition'''
 
@@ -21,63 +22,58 @@ def p_function_or_variable_definition(p):
     '''function_or_variable_definition : variable_definition
                                         | function_definition
                                         | subroutine_definition'''
-    print('function_or_variable_definition')
 
-# tänne piti lisätä jotain
+def p_variable_definitions(p):
+    '''variable_definitions :   empty
+                                | variable_definition
+                                | variable_definitions variable_definition'''
+
 def p_variable_definition(p):
     '''variable_definition : scalar_definition
                             | range_definition
                             | sheet_definition'''
-    print('variable_definition(', p.value, ')')
+    print('variable_definition(', p[1], ')')
 
-#def p_function_definition(p):
-#    '''function_definition : FUNCTION FUNC_IDENT LSQUARE [formals] RSQUARE
-#                            RETURN (SCALAR | RANGE) IS
-#                            { variable_definition }
-#                            statement_list
-#                            END'''
-#    print('function_definition(', p[1], ')')
+def p_function_definition(p):
+    '''function_definition :    FUNCTION FUNC_IDENT LSQUARE RSQUARE RETURN SCALAR IS variable_definitions statement_list END
+                                | FUNCTION FUNC_IDENT LSQUARE RSQUARE RETURN RANGE IS variable_definitions statement_list END
+                                | FUNCTION FUNC_IDENT LSQUARE formals RSQUARE RETURN SCALAR IS variable_definitions statement_list END
+                                | FUNCTION FUNC_IDENT LSQUARE formals RSQUARE RETURN RANGE IS variable_definitions statement_list END'''
+    print('function_definition(', p[2], ')')
 
-#def p_subroutine_definition(p):
-#    '''subroutine_definition :   SUBROUTINE FUNC_IDENT LSQUARE [formals] RSQUARE IS
-#                                {variable_definition}
-#                                statement_list
-#                                END'''
-#    print('subroutine_definition(', p[1], ')')
+def p_subroutine_definition(p):
+    '''subroutine_definition :  SUBROUTINE FUNC_IDENT LSQUARE RSQUARE IS variable_definitions statement_list END
+                                | SUBROUTINE FUNC_IDENT LSQUARE formals RSQUARE IS variable_definitions statement_list END'''
+    print('subroutine_definition(', p[2], ')')
 
 def p_formals(p):
     '''formals : formal_arg
                 | formal_arg COMMA formal_arg
                 | formals COMMA formal_arg'''
-    print('formals')
 
 def p_formal_arg(p):
      '''formal_arg : IDENT COLON SCALAR
                     | RANGE_IDENT COLON RANGE
                     | SHEET_IDENT COLON SHEET'''
-     print('formal_arg')
 
 def p_sheet_definition(p):
     'sheet_definition : SHEET SHEET_IDENT sheet_inits'
     print('sheet_definition')
 
 def p_sheet_inits(p):
-    '''sheet_init :
+    '''sheet_inits : empty
                     | sheet_init
                     | sheet_inits sheet_init'''
-    print('sheet_inits')
 
 def p_sheet_init(p):
     '''sheet_init :  EQ sheet_init_list
                     | EQ INT_LITERAL MULT INT_LITERAL'''
-    print('sheet_init')
 
 def p_sheet_init_list(p):
     'sheet_init_list : LCURLY sheet_row sheet_rows RCURLY'
-    print('sheet_init_list')
 
 def p_sheet_rows(p):
-    '''sheet_rows :
+    '''sheet_rows : empty
                     | sheet_row
                     | sheet_rows sheet_row'''
 
@@ -85,22 +81,18 @@ def p_sheet_row(p):
     '''sheet_row :  simple_expr
                     | simple_expr COMMA simple_expr
                     | sheet_row COMMA simple_expr'''
-    print('sheet_row')
 
 def p_range_definition(p):
     '''range_definition :   RANGE RANGE_IDENT
                             | RANGE RANGE_IDENT EQ range_expr'''
-    print('range_definition')
 
 def p_scalar_definition(p):
-    '''scalar_definition :  SCALAR_IDENT
-                            | SCALAR_IDENT EQ scalar_expr'''
-    print('scalar-definition')
+    '''scalar_definition :  SCALAR IDENT
+                            | SCALAR IDENT EQ scalar_expr'''
 
 def p_statement_list(p):
     '''statement_list : statement
                         | statement_list statement'''
-    print('statement_list')
 
 def p_statement(p):
     '''statement :   PRINT_SHEET SHEET_IDENT
@@ -114,10 +106,10 @@ def p_statement(p):
                     | WHILE scalar_expr DO statement_list DONE
                     | FOR range_list DO statement_list DONE
                     | subroutine_call
-                    | RETURN scalar-expr
+                    | RETURN scalar_expr
                     | RETURN range_expr
                     | assignment'''
-    print('statement')
+    print('statement (', ,')')
 
 def p_range_list(p):
     '''range_list : range_expr
@@ -199,11 +191,21 @@ def p_atom(p):
 def p_function_call(p):
     '''function_call :  FUNC_IDENT LSQUARE RSQUARE
                         | FUNC_IDENT LSQUARE arguments RSQUARE'''
-    print('function call(', p[1], ')')
+    if len(p) == 4:
+        print('function call()')
+    else:
+        print('function call(', p[3], ')')
+
+def p_empty(p):
+    'empty :'
+    pass
 
 def p_error(p):
-    print("{%s}: Syntax Error(token: '%s')" % p.lineno, p.value)
-    sys.exit()
+    if p != None:
+        print("{%s}: Syntax Error(token: '%s')" % p.lineno, p.value)
+        sys.exit()
+    else:
+        print('unexpected end on input')
 
 parser = yacc.yacc()
 
@@ -221,7 +223,7 @@ if __name__ == '__main__':
         # user didn't provide input filename
         arg_parser.print_help()
     else:
-        data = codecs.open( ns.file, encoding='utf-8' ).read()
+        data = codecs.open(ns.file, encoding='utf-8').read()
         result = parser.parse(data, lexer=lexer.lexer, debug=False)
         if result is None:
-            print( 'syntax OK' )
+            print('syntax OK')
