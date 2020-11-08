@@ -225,6 +225,7 @@ def p_atom1(p):
                 | cell_ref
                 | NUMBER_SIGN range_expr
                 | LPAREN scalar_expr RPAREN'''
+    print('atom')
 
 # Printable atoms
 def p_atom2(p):
@@ -262,7 +263,7 @@ if __name__ == '__main__':
     group.add_argument('-f', '--file', help='filename to process')
     ns = arg_parser.parse_args()
     if ns.who == True:
-        print( '99219 Pinja Mikkonen :)' )
+        print('99219 Pinja Mikkonen :)')
     elif ns.file is None:
         arg_parser.print_help()
     else:
