@@ -96,11 +96,11 @@ def t_COMMENT(t):
     r'\.\.\.(.|\n)*?\.\.\.'
     pass
 
-# Info string
+# Info string - comments get removed
 def t_INFO_STRING(t):
     r'!.*!'
+    t = remove_comment(t)
     t.type = reserved.get(t.value, 'INFO_STRING')
-    #return remove_comment(t)
     return t
 
 # New line
@@ -149,10 +149,12 @@ def t_error(t):
 # Build lexer
 lexer = lex.lex()
 
-#def remove_comment(t):
-#    c = re.search("...(.|\n)*?...", t.value)
-#    t = t.value[0].replace(c, "")
-#    return t
+# Function for removing comments from inside info strings - Added for phase 2
+def remove_comment(t):
+    c = re.search('\.\.\.(.|\n)*?\.\.\.', t.value)
+    if c != None:
+        t.value = t.value.replace(c.group(0), "")
+    return t
 
 # Main
 if __name__ == '__main__':
