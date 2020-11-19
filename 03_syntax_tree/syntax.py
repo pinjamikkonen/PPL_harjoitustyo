@@ -18,7 +18,7 @@ def p_program1(p):
     'program : statement_list'
     p[0] = Node('program')
     p[0].children_funcs_vars = []
-    p[0].children_stmt_list = [p[1]]
+    p[0].children_stmt_list = p[1]
 
 def p_program2(p):
     'program : function_or_variable_definition program'
@@ -44,15 +44,13 @@ def p_function_or_variable_definition(p):
 
 # {} - None or multiple definitions
 def p_variable_definitions(p):
-    '''variable_definitions :   empty
-                                | variable_definition
+    '''variable_definitions :   variable_definition
                                 | variable_definitions variable_definition'''
     if len(p) == 2:
-        p[0] = p[1]
+        p[0] = [p[1]]
     elif len(p) == 2:
-        p[0] = Node('expr')
         p[0] = p[1]
-        p[0].children_exprs = [p[2]]
+        p[0].children_vars.append(p[2])
 
 # Variable definition
 def p_variable_definition(p):
@@ -62,26 +60,53 @@ def p_variable_definition(p):
     p[0] = p[1]
 
 # Function definition
-def p_function_definition(p):
-    '''function_definition :    FUNCTION FUNC_IDENT LSQUARE RSQUARE RETURN SCALAR IS variable_definitions statement_list END
-                                | FUNCTION FUNC_IDENT LSQUARE RSQUARE RETURN RANGE IS variable_definitions statement_list END
+def p_function_definition1(p):
+    '''function_definition :    FUNCTION FUNC_IDENT LSQUARE RSQUARE RETURN SCALAR IS statement_list END
+                                | FUNCTION FUNC_IDENT LSQUARE RSQUARE RETURN RANGE IS statement_list END
+                                | FUNCTION FUNC_IDENT LSQUARE RSQUARE RETURN SCALAR IS variable_definitions statement_list END
+                                | FUNCTION FUNC_IDENT LSQUARE RSQUARE RETURN RANGE IS variable_definitions statement_list END'''
+    p[0] = Node('function-def')
+    p[0].child_name = Node('FUNC_IDENT')
+    p[0].child_name.value = p[2]
+    p[0].child_rettype = Node('rettype')
+    p[0].child_rettype.value = p[6]
+    if len(p) == 10:
+        p[0].children_stmt_list = p[8]
+    else:
+        print('vars 1')
+        p[0].children_vars = p[8]
+        p[0].children_stmt_list = p[9]
+
+def p_function_definition2(p):
+    '''function_definition :    FUNCTION FUNC_IDENT LSQUARE formals RSQUARE RETURN SCALAR IS statement_list END
+                                | FUNCTION FUNC_IDENT LSQUARE formals RSQUARE RETURN RANGE IS statement_list END
                                 | FUNCTION FUNC_IDENT LSQUARE formals RSQUARE RETURN SCALAR IS variable_definitions statement_list END
                                 | FUNCTION FUNC_IDENT LSQUARE formals RSQUARE RETURN RANGE IS variable_definitions statement_list END'''
-    #p[0] = Node('function')
-    p[0].value = p[2]
-    #p[0].children_ = [p[8], p[9]]
+    p[0] = Node('function-def')
+    p[0].child_name = Node('FUNC_IDENT')
+    p[0].child_name.value = p[2]
+    p[0].children_formals = p[4]
+    p[0].child_rettype = Node('rettype')
+    p[0].child_rettype.value = p[7]
+    if len(p) == 11:
+        p[0].children_stmt_list = p[9]
+    else:
+        print('vars 2')
+        p[0].children_vars = p[9]
+        p[0].children_stmt_list = p[10]
 
 # Subroutine definition
 def p_subroutine_definition1(p):
-    'subroutine_definition :  SUBROUTINE FUNC_IDENT LSQUARE RSQUARE IS variable_definitions statement_list END'
-
+    '''subroutine_definition :  SUBROUTINE FUNC_IDENT LSQUARE RSQUARE IS statement_list END
+                                | SUBROUTINE FUNC_IDENT LSQUARE RSQUARE IS variable_definitions statement_list END'''
     p[0] = Node('subroutine')
     p[0].value = p[2]
     p[0].children_vars = [p[7]]
     p[0].children_stmts = [p[8]]
 
 def p_subroutine_definition2(p):
-    'subroutine_definition : SUBROUTINE FUNC_IDENT LSQUARE formals RSQUARE IS variable_definitions statement_list END'
+    '''subroutine_definition :  SUBROUTINE FUNC_IDENT LSQUARE formals RSQUARE IS statement_list END
+                                | SUBROUTINE FUNC_IDENT LSQUARE formals RSQUARE IS variable_definitions statement_list END'''
     p[0] = Node('subroutine')
     p[0].value = p[2]
     p[0].children_frmls = [p[4]]
@@ -91,22 +116,31 @@ def p_subroutine_definition2(p):
 # Formals
 def p_formals(p):
     '''formals : formal_arg
-                | formal_arg COMMA formal_arg
                 | formals COMMA formal_arg'''
     if len(p) == 2:
-        p[0] = p[1]
+        p[0] = [p[1]]
     if len(p) > 2:
         p[0] = p[1]
-        p[0].children_frmls.append(p[3])
-
+        p[0].append(p[3])
 
 # Formal arguments
-def p_formal_arg(p):
-     '''formal_arg : IDENT COLON SCALAR
-                    | RANGE_IDENT COLON RANGE
-                    | SHEET_IDENT COLON SHEET'''
+def p_formal_arg1(p):
+     'formal_arg : IDENT COLON SCALAR'
      p[0] = Node('formal_arg')
-     p[0].value = p[1]
+     p[0].child_name = Node('IDENT')
+     p[0].child_name.value = p[1]
+
+def p_formal_arg2(p):
+    'formal_arg : RANGE_IDENT COLON RANGE'
+    p[0] = Node('formal_arg')
+    p[0].child_name = Node('RANGE_IDENT')
+    p[0].child_name.value = p[1]
+
+def p_formal_arg(p):
+     'formal_arg : SHEET_IDENT COLON SHEET'
+     p[0] = Node('formal_arg')
+     p[0].child_name = Node('SHEET_IDENT')
+     p[0].child_name.value = p[1]
 
 # Sheet definition
 def p_sheet_definition(p):
@@ -116,15 +150,14 @@ def p_sheet_definition(p):
     p[0].child_name = Node('SHEET')
     p[0].child_name.value = p[2]
     if len(p) > 3:
-        p[0].child_inits = p[3]
+        p[0].child_init = p[3]
 
 # {} - None or multiple sheet initializations
 def p_sheet_inits(p):
     '''sheet_inits : sheet_init
                     | sheet_inits sheet_init'''
     if len(p) == 2:
-        p[0] = Node('sheet_init')
-        p[0].children_rows = []
+        p[0] = p[1]
     else:
         p[0] = p[1]
         p[0].children_rows.insert(0, p[2])
@@ -133,18 +166,19 @@ def p_sheet_inits(p):
 def p_sheet_init(p):
     '''sheet_init :  EQ sheet_init_list
                     | EQ INT_LITERAL MULT INT_LITERAL'''
-    p[0] = Node('sheet_init')
+    p[0] = p[2]
 
 # Sheet initialization list
 def p_sheet_init_list(p):
     'sheet_init_list : LCURLY sheet_rows RCURLY'
     p[0] = Node('sheet_init_list')
+    p[0].children_rows = [p[2]]
 
 # {} - None or multiple sheet rows
 def p_sheet_rows(p):
     '''sheet_rows : sheet_row
                     | sheet_rows sheet_row'''
-    p[0] = Node('sheet_row')
+    p[0] = p[1]
 
 # Sheet rows
 def p_sheet_row(p):
@@ -152,10 +186,10 @@ def p_sheet_row(p):
                     | sheet_row COMMA simple_expr'''
     if len(p) == 2:
         p[0] = Node('col_init_list')
-        p[0].children_cols = []
+        p[0].children_cols = [p[1]]
     else:
         p[0] = p[1]
-        p[0].children_cols.insert(0, p[3])
+        p[0].children_cols.append(p[3])
 
 
 # Range definition
@@ -179,11 +213,10 @@ def p_statement_list(p):
     '''statement_list : statement
                         | statement statement_list'''
     if len(p) == 2:
-        p[0] = p[1]
-        p[0].children_stmt_list = []
+        p[0] = [p[1]]
     else:
         p[0] = p[2]
-        p[0].children_stmt_list.insert(0, p[1])
+        p[0].insert(0, p[1])
 
 # Statements
 def p_statement(p):
@@ -200,16 +233,27 @@ def p_statement(p):
                     | RETURN scalar_expr
                     | RETURN range_expr
                     | assignment'''
-    # Assignments aren't printed
     if len(p) == 2:
         p[0] = p[1]
+    elif p[1] == 'if':
+        print('if ei vielä täällä')
+    elif p[1] == 'while':
+        print('while ei vielä täällä')
+    elif p[1] == 'for':
+        p[0] = Node('for_stmt')
+        p[0].children_ranges = p[2]
+        p[0].children_stmt_list = p[4]
+    # HOXXXXX LIBRARY.SS NÄISSÄ HÄIKKÄÄ
+    elif p[1] == 'return':
+        p[0] = Node('return')
+        p[0].child_expr = p[2]
     else:
         p[0] = Node('statement ')
         p[0].value = p[1]
 
 def p_statement2(p):
     'statement : PRINT_SCALAR INFO_STRING scalar_expr'
-    p[0] = Node('statement')
+    p[0] = Node('print_scalar')
     p[0].child_infostr = Node('infostring')
     p[0].child_infostr.value = p[2]
     p[0].child_expr = p[3]
@@ -218,17 +262,33 @@ def p_statement2(p):
 def p_range_list(p):
     '''range_list : range_expr
                     | range_list COMMA range_expr'''
+    if len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = p[1]
+        p[0].append(p[3])
 
 # Argument list
 def p_arguments(p):
     '''arguments :  arg_expr
                     | arguments COMMA arg_expr'''
+    if len(p):
+        p[0] = [p[1]]
+    else:
+        p[0] = p[1]
+        p[0].append(p[3])
 
 # Argument expression
-def p_arg_expr(p):
+def p_arg_expr1(p):
     '''arg_expr :   scalar_expr
-                    | range_expr
-                    | SHEET_IDENT'''
+                    | range_expr'''
+    p[0] = p[1]
+
+def p_arg_expr2(p):
+    'arg_expr : SHEET_IDENT'
+    p[0] = Node('sheet_ref')
+    p[0].child_name = Node('SHEET_IDENT')
+    p[0].child_name.value = p[1]
 
 # Subroutine call
 def p_subroutine_call(p):
@@ -236,41 +296,68 @@ def p_subroutine_call(p):
                          | FUNC_IDENT LSQUARE arguments RSQUARE'''
 
 # Printable assignments
+#HOX VAATII TÖITÄ
 def p_assignment1(p):
-    '''assignment :     IDENT ASSIGN scalar_expr
-                        | RANGE_IDENT ASSIGN range_expr
+    '''assignment :     RANGE_IDENT ASSIGN range_expr
                         | SHEET_IDENT ASSIGN SHEET_IDENT
                         | cell_ref ASSIGN scalar_expr'''
     p[0] = Node('scalar_assign')
     p[0].child_left = p[1]
     p[0].child_right = p[3]
 
+def p_assignment2(p):
+    'assignment : IDENT ASSIGN scalar_expr'
+    p[0] = Node('scalar_assign')
+    p[0].child_var = Node('scalar_ref')
+    p[0].child_var.child_name = Node('IDENT')
+    p[0].child_var.child_name.value = p[1]
+    p[0].child_expr = p[3]
+
 # Nonprintable assignments
-#def p_assignment2(p):
+#def p_assignment3(p):
 #    'assignment : cell_ref ASSIGN scalar_expr'
 
 # Range expression
+# KAIKKI PÄIN KUSTA JA PASKAA
 def p_range_expr(p):
     '''range_expr :  RANGE_IDENT
                     | RANGE cell_ref DOTDOT cell_ref
                     | LSQUARE function_call RSQUARE
                     | range_expr LSQUARE INT_LITERAL COMMA INT_LITERAL RSQUARE'''
+    if len(p) == 2:
+        p[0] = Node('range_ref')
+        p[0].child_name = Node('RANGE_IDENT')
+        p[0].child_name.value = p[1]
 
 # Cell reference
+#HOX CELL REFEISSÄ HÄIKKÄÄ
 def p_cell_ref(p):
     '''cell_ref :    SHEET_IDENT SQUOTE COORDINATE_IDENT
                     | DOLLAR
                     | DOLLAR COLON RANGE_IDENT'''
+    p[0] = Node('cell_ref')
+    if len(p) == 2:
+
+    elif p[2] == '\'':
+        p[0].child_name = Node('SHEET_IDENT')
+        p[0].child_name.value = p[1]
+        p[0].child_coord = Node('coord')
+        p[0].child_coord.value = p[3]
+    elif p[2] == ':':
+        p[0].child_name = Node('RANGE_IDENT')
+        p[0].child_name.value = p[1]
+        p[0].child_coord = Node('coord')
+        p[0].child_coord.value = p[3]
 
 # Scalar expression
 def p_scalar_expr(p):
     '''scalar_expr :    simple_expr
-                        | simple_expr EQ simple_expr
-                        | simple_expr NOTEQ simple_expr
-                        | simple_expr LT simple_expr
-                        | simple_expr LTEQ simple_expr
-                        | simple_expr GT simple_expr
-                        | simple_expr GTEQ simple_expr'''
+                        | scalar_expr EQ simple_expr
+                        | scalar_expr NOTEQ simple_expr
+                        | scalar_expr LT simple_expr
+                        | scalar_expr LTEQ simple_expr
+                        | scalar_expr GT simple_expr
+                        | scalar_expr GTEQ simple_expr'''
     if len(p) == 2:
         p[0] = p[1]
     else:
@@ -310,7 +397,7 @@ def p_factor(p):
         p[0] = p[1]
     else:
         p[0] = Node('oper ' + p[1])
-        p[0].child_ = p[2]
+        p[0].child_value = p[2]
 
 # Nonprintable atoms
 def p_atom1(p):
@@ -326,7 +413,7 @@ def p_atom2(p):
 # Printable atoms
 def p_atom3(p):
     'atom : IDENT'
-    p[0] = Node('identifier')
+    p[0] = Node('IDENT')
     p[0].value = p[1]
     p[0].lineno = p.lineno(1)
 
@@ -341,8 +428,9 @@ def p_function_call(p):
     '''function_call :  FUNC_IDENT LSQUARE RSQUARE
                         | FUNC_IDENT LSQUARE arguments RSQUARE'''
     p[0] = Node('function_call')
-    p[0].child_name = p[1]
-    if len(p) > 4:
+    p[0].child_name = Node('FUNC_IDENT')
+    p[0].child_name.value = p[1]
+    if len(p) == 5:
         p[0].children_args = p[3]
 
 # Empty definition used in {} -statements
