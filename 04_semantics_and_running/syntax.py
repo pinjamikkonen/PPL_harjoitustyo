@@ -1,6 +1,6 @@
 # Pinja Mikkonen 99219
 # Priciples of Programming Languages
-# Project Work - Phase 3
+# Project Work - Phase 4
 
 import sys
 import ply.yacc as yacc
@@ -55,7 +55,7 @@ def p_function_definition1(p):
                                 | FUNCTION FUNC_IDENT LSQUARE RSQUARE RETURN RANGE IS statement_list END
                                 | FUNCTION FUNC_IDENT LSQUARE RSQUARE RETURN SCALAR IS variable_definitions statement_list END
                                 | FUNCTION FUNC_IDENT LSQUARE RSQUARE RETURN RANGE IS variable_definitions statement_list END'''
-    p[0] = Node('function-def')
+    p[0] = Node('function_def')
     p[0].child_name = Node('FUNC_IDENT')
     p[0].child_name.value = p[2]
     p[0].child_rettype = Node('rettype')
@@ -234,6 +234,7 @@ def p_scalar_definition(p):
     p[0] = Node('scalar_definition')
     p[0].child_name = Node('IDENT')
     p[0].child_name.value = p[2]
+    # p[0].lineno = p.lineno(1)
 
     if len(p) == 5:
         p[0].child_init = p[4]

@@ -6,7 +6,6 @@
 import sys
 from tree_print import get_childvars
 
-
 # A class for collecting data needed during semantic analysis etc.
 # By default contains the symbol table
 
