@@ -60,6 +60,7 @@ def p_function_definition1(p):
     p[0].child_name.value = p[2]
     p[0].child_rettype = Node('rettype')
     p[0].child_rettype.value = p[6]
+    p[0].lineno = p.lineno(1)
 
     # No variables
     if len(p) == 10:
@@ -82,6 +83,7 @@ def p_function_definition2(p):
     p[0].children_formals = p[4]
     p[0].child_rettype = Node('rettype')
     p[0].child_rettype.value = p[7]
+    p[0].lineno = p.lineno(1)
 
     # No variables
     if len(p) == 11:
@@ -99,6 +101,7 @@ def p_subroutine_definition1(p):
     p[0] = Node('subroutine_def')
     p[0].child_name = Node('FUNC_IDENT')
     p[0].child_name.value = p[2]
+    p[0].lineno = p.lineno(1)
 
     # No variables
     if len(p) == 8:
@@ -117,6 +120,7 @@ def p_subroutine_definition2(p):
     p[0].child_name = Node('FUNC_IDENT')
     p[0].child_name.value = p[2]
     p[0].children_frmls = p[4]
+    p[0].lineno = p.lineno(1)
 
     # No variables
     if len(p) == 9:
@@ -223,6 +227,7 @@ def p_range_definition(p):
     p[0] = Node('range_definition')
     p[0].child_name = Node('RANGE_IDENT')
     p[0].child_name.value = p[2]
+    p[0].lineno = p.lineno(1)
 
     if len(p) == 5:
         p[0].child_init = p[4]
@@ -234,7 +239,7 @@ def p_scalar_definition(p):
     p[0] = Node('scalar_definition')
     p[0].child_name = Node('IDENT')
     p[0].child_name.value = p[2]
-    # p[0].lineno = p.lineno(1)
+    p[0].lineno = p.lineno(1)
 
     if len(p) == 5:
         p[0].child_init = p[4]
@@ -260,14 +265,17 @@ def p_statement1(p):
         p[0].child_expr = Node('sheet_ref')
         p[0].child_expr.child_name = Node('SHEET_IDENT')
         p[0].child_expr.child_name.value = p[2]
+        p[0].lineno = p.lineno(1)
 
     elif p[1] == 'print_range':
         p[0] = Node('print_range')
         p[0].child_expr = p[2]
+        p[0].lineno = p.lineno(1)
 
     elif p[1] == 'print_scalar':
         p[0] = Node('print_scalar')
         p[0].child_expr = p[2]
+        p[0].lineno = p.lineno(1)
 
 # Print statements with infostring
 def p_statement2(p):
@@ -282,18 +290,21 @@ def p_statement2(p):
         p[0].child_expr = Node('sheet_ref')
         p[0].child_expr.child_name = Node('SHEET_IDENT')
         p[0].child_expr.child_name.value = p[3]
+        p[0].lineno = p.lineno(1)
 
     elif p[1] == 'print_range':
         p[0] = Node('print_range')
         p[0].child_infostr = Node('infostring')
         p[0].child_infostr.value = p[2]
         p[0].child_expr = p[3]
+        p[0].lineno = p.lineno(1)
 
     elif p[1] == 'print_scalar':
         p[0] = Node('print_scalar')
         p[0].child_infostr = Node('infostring')
         p[0].child_infostr.value = p[2]
         p[0].child_expr = p[3]
+        p[0].lineno = p.lineno(1)
 
 # Assorted statements
 def p_statement3(p):
@@ -315,6 +326,7 @@ def p_statement3(p):
         p[0] = Node('if_stmt')
         p[0].child_cond = p[2]
         p[0].children_then_list = p[4]
+        p[0].lineno = p.lineno(1)
         if len(p) == 8:
             p[0].children_else_list = p[6]
 
@@ -323,17 +335,20 @@ def p_statement3(p):
         p[0] = Node('while_stmt')
         p[0].child_cond = p[2]
         p[0].children_do = p[4]
+        p[0].lineno = p.lineno(1)
 
     # for-loops
     elif p[1] == 'for':
         p[0] = Node('for_stmt')
         p[0].children_ranges = p[2]
         p[0].children_stmt_list = p[4]
+        p[0].lineno = p.lineno(1)
 
     # return statements
     elif p[1] == 'return':
         p[0] = Node('return')
         p[0].child_expr = p[2]
+        p[0].lineno = p.lineno(1)
 
 # Range list
 def p_range_list(p):
@@ -368,6 +383,7 @@ def p_arg_expr2(p):
     p[0] = Node('sheet_ref')
     p[0].child_name = Node('SHEET_IDENT')
     p[0].child_name.value = p[1]
+    p[0].lineno = p.lineno(1)
 
 # Subroutine call
 def p_subroutine_call(p):
@@ -376,6 +392,7 @@ def p_subroutine_call(p):
     p[0] = Node('subroutine_call')
     p[0].child_name = Node('FUNC_IDENT')
     p[0].child_name.value = p[1]
+    p[0].lineno = p.lineno(1)
 
     if len(p) == 5:
         p[0].children_args = p[3]
@@ -388,6 +405,7 @@ def p_assignment1(p):
     p[0].child_var.child_name = Node('RANGE_IDENT')
     p[0].child_var.child_name.value = p[1]
     p[0].child_expr = p[3]
+    p[0].lineno = p.lineno(1)
 
 # Scalar assignments
 def p_assignment2(p):
@@ -397,6 +415,7 @@ def p_assignment2(p):
     p[0].child_var.child_name = Node('IDENT')
     p[0].child_var.child_name.value = p[1]
     p[0].child_expr = p[3]
+    p[0].lineno = p.lineno(1)
 
 # Sheet assignments
 def p_assignment3(p):
@@ -410,12 +429,15 @@ def p_assignment3(p):
     p[0].child_expr.child_name = Node('SHEET_IDENT')
     p[0].child_expr.child_name.value = p[3]
 
+    p[0].lineno = p.lineno(1)
+
 # Cell assignments
 def p_assignment4(p):
     'assignment : cell_ref ASSIGN scalar_expr'
     p[0] = Node('cell_assign')
     p[0].child_cell = p[1]
     p[0].child_expr = p[3]
+    p[0].lineno = p.lineno(1)
 
 # Range expressions
 def p_range_expr(p):
@@ -427,11 +449,13 @@ def p_range_expr(p):
         p[0] = Node('range_ref')
         p[0].child_name = Node('RANGE_IDENT')
         p[0].child_name.value = p[1]
+        p[0].lineno = p.lineno(1)
 
     elif p[1] == 'range':
         p[0] = Node('range')
         p[0].child_coord1 = p[2]
         p[0].child_coord2 = p[4]
+        p[0].lineno = p.lineno(1)
 
     elif p[1] == '[':
         p[0] = p[2]
@@ -440,6 +464,7 @@ def p_range_expr(p):
         p[0] = Node('range_shift')
         p[0].value = (p[3], p[5])
         p[0].child_expr = p[1]
+        p[0].lineno = p.lineno(1)
 
 # Cell reference
 def p_cell_ref(p):
@@ -448,6 +473,7 @@ def p_cell_ref(p):
                     | DOLLAR COLON RANGE_IDENT'''
     if len(p) == 2:
         p[0] = Node('cell_ref')
+        p[0].lineno = p.lineno(1)
 
     elif p[2] == '\'':
         p[0] = Node('cell_ref')
@@ -455,12 +481,14 @@ def p_cell_ref(p):
         p[0].child_name.value = p[1]
         p[0].child_coord = Node('coord')
         p[0].child_coord.value = p[3]
+        p[0].lineno = p.lineno(1)
 
     elif p[2] == ':':
         p[0] = Node('cell_ref')
         p[0].child_range_selector = Node('range_ref')
         p[0].child_range_selector.child_name = Node('RANGE_IDENT')
         p[0].child_range_selector.child_name.value = p[3]
+        p[0].lineno = p.lineno(1)
 
 # Scalar expression
 def p_scalar_expr(p):
@@ -478,6 +506,7 @@ def p_scalar_expr(p):
         p[0] = Node('oper ' + p[2])
         p[0].child_left = p[1]
         p[0].child_right = p[3]
+        p[0].lineno = p.lineno(1)
 
 # Simple expression
 def p_simple_expr(p):
@@ -491,6 +520,7 @@ def p_simple_expr(p):
         p[0] = Node('oper ' + p[2])
         p[0].child_left = p[1]
         p[0].child_right = p[3]
+        p[0].lineno = p.lineno(1)
 
 # Term definition
 def p_term(p):
@@ -504,6 +534,7 @@ def p_term(p):
         p[0] = Node('oper ' + p[2])
         p[0].child_left = p[1]
         p[0].child_right = p[3]
+        p[0].lineno = p.lineno(1)
 
 # Factor definition
 def p_factor(p):
@@ -515,6 +546,7 @@ def p_factor(p):
     else:
         p[0] = Node('oper ' + p[1])
         p[0].child_value = p[2]
+        p[0].lineno = p.lineno(1)
 
 # Function calls and cell references get passed on
 def p_atom1(p):
@@ -534,12 +566,14 @@ def p_atom3(p):
     p[0] = Node('scalar_ref')
     p[0].child_name = Node('IDENT')
     p[0].child_name.value = p[1]
+    p[0].lineno = p.lineno(1)
 
 # Decimal numbers
 def p_atom4(p):
     'atom : DECIMAL_LITERAL'
     p[0] = Node('decimal_number')
     p[0].value = p[1]
+    p[0].lineno = p.lineno(1)
 
 # Function calls
 def p_function_call(p):
@@ -548,6 +582,7 @@ def p_function_call(p):
     p[0] = Node('function_call')
     p[0].child_name = Node('FUNC_IDENT')
     p[0].child_name.value = p[1]
+    p[0].lineno = p.lineno(1)
 
     if len(p) == 5:
         p[0].children_args = p[3]

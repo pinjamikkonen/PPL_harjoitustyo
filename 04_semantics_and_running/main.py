@@ -2,7 +2,6 @@
 # Priciples of Programming Languages
 # Project Work - Phase 4
 
-import sys
 import lexer
 import syntax
 import tree_print
