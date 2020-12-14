@@ -119,7 +119,7 @@ def p_subroutine_definition2(p):
     p[0] = Node('subroutine_def')
     p[0].child_name = Node('FUNC_IDENT')
     p[0].child_name.value = p[2]
-    p[0].children_frmls = p[4]
+    p[0].children_formals = p[4]
     p[0].lineno = p.lineno(1)
 
     # No variables

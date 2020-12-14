@@ -6,10 +6,7 @@ import syntax
 import re
 
 parser = syntax.parser
-
 from semantics_common import visit_tree, SymbolData, SemData
-
-# HOX TSEKKAA ERRORVIESTIT
 
 def add_vars(node, semdata):
     nodetype = node.nodetype
@@ -36,17 +33,13 @@ def add_vars(node, semdata):
         if var_name not in semdata.symtbl:
             return "Error, variable uninitialized: " + var_name
 
-        # Initialize value
-        else:
-            semdata.symtbl[var_name].defnode.child_init.value = node.child_expr.value
-
     # Sheet definition
     elif nodetype == 'sheet_definition':
         var_name = node.child_name.value
 
         # Check if variable name is already in use
         if var_name in semdata.symtbl:
-            return "Error, sheet name in use: " + var_name
+            return "Error, sheet name already in use: " + var_name
 
         # Check that all rows are the same length
         else:
@@ -82,7 +75,7 @@ def add_vars(node, semdata):
         # Check if cells refer to the same sheet
         if hasattr(cell1, 'child_name') and hasattr(cell2, 'child_name'):
             if cell1.child_name.value != cell2.child_name.value:
-                return "Error, cells must refer to the same sheet!"
+                return "Error, range cells must refer to the same sheet"
 
             # Check that range refers to either a horizontal or vertical range
             # ie., either the row or column indicator matches
@@ -94,11 +87,11 @@ def add_vars(node, semdata):
                 checkrange = lambda x, y, r: re.search(r, x).group() is re.search(r, y).group()
 
                 if not (checkrange(coord1, coord2, r'[A-Z]{1,2}') or checkrange(coord1, coord2, r'[0-9]{1,3}')):
-                    return "Error, range refers to illegal cells"
+                    return "Error, illegal range"
                 else:
                     return None
         else:
-            return "Error, idk what happened here mate :DDD"
+            return None
 
     # Subroutine definition
     elif nodetype == 'subroutine_def':
@@ -125,18 +118,20 @@ def add_vars(node, semdata):
 
             # Check if subroutine is being called as a function
             if semdata.symtbl[var_name].defnode.nodetype is not 'subroutine_def':
-                return "Error, subroutine being called as a function!"
+                return "Error, subroutine being called as a function"
 
             # Check if the number of parameters and arguments is the same
             else:
-                if hasattr(node, "children_args"):
-                    try:
-                        formals = len(semdata.symtbl[var_name].defnode.formals)
-                        args = len(node.children_args)
-                        print("formals" + formals)
-                        print("args" + args)
-                    except:
-                        return "Error, subroutine has wrong number of arguments"
+                if hasattr(node, "children_args") and hasattr(semdata.symtbl[var_name].defnode, "children_formals"):
+                    formals = len(semdata.symtbl[var_name].defnode.children_formals)
+                    args = len(node.children_args)
+
+                    if formals != args:
+                        return "Error, subroutine has wrong number of arguments!"
+
+                # If only arguments or formal arguments exist raise error
+                elif hasattr(node, "children_args") or hasattr(semdata.symtbl[var_name].defnode, "children_formals"):
+                    return "Error, subroutine call has wrong number of arguments"
 
     # Function definition
     elif nodetype == 'function_def':
@@ -163,17 +158,19 @@ def add_vars(node, semdata):
         # Check if function is being called as a subroutine
         else:
             if semdata.symtbl[var_name].defnode.nodetype is not 'function_def':
-                return "Error, function being called as a subroutine!"
+                return "Error, function being called as a subroutine"
 
             # Check if the number of arguments is the same as parameters
-            if hasattr(node, "children_args"):
-                try:
-                    formals = len(semdata.symtbl[var_name].defnode.formals)
-                    args = len(node.children_args)
-                    print("formals" + formals)
-                    print("args" + args)
-                except:
-                    return "Error! Parametreissä häikkää!"
+            if hasattr(node, "children_args") and hasattr(semdata.symtbl[var_name].defnode, "children_formals"):
+                formals = len(semdata.symtbl[var_name].defnode.children_formals)
+                args = len(node.children_args)
+
+                if formals != args:
+                    return "Error, function has wrong number of arguments!"
+
+            # If only arguments or formal arguments exist raise error
+            elif hasattr(node, "children_args") or hasattr(semdata.symtbl[var_name].defnode, "children_formals"):
+                return "Error, function call has wrong number of arguments"
 
 
 def print_symbol_table(semdata, title):
